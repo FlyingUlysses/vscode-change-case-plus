@@ -14,8 +14,16 @@
   "contributes": {
     "commands": [
       {
-        "command": "change-case-plus.helloWorld",
-        "title": "Hello World"
+        "command": "extension.changeCasePlus",
+        "title": "change case plus"
+      }
+    ],
+    "keybindings": [
+      {
+          "command": "extension.changeCasePlus",
+          "key": "ctrl+alt+r",
+          "mac": "cmd+alt+r",
+          "when": "editorTextFocus"
       }
     ]
   },
