@@ -14,18 +14,149 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.changeCasePlus",
+        "command": "changeCasePlus",
         "title": "change case plus"
       }
     ],
     "keybindings": [
       {
-          "command": "extension.changeCasePlus",
+          "command": "changeCasePlus",
           "key": "ctrl+alt+r",
           "mac": "cmd+alt+r",
           "when": "editorTextFocus"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "change case plus configuration",
+      "properties": {
+        "converterList.defaultList" :{
+          "description": "when can't match the file type using the default converter list to convert",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "enum": [
+            "lowerCamel",
+						"upperCamel",
+						"snake",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+          ],
+          "default": [
+						"lowerCamel",
+						"upperCamel",
+						"snake",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+					]
+        },
+        "converterList.java" :{
+          "description": "when can't match java file type using the converter list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "enum": [
+            "lowerCamel",
+						"upperCamel",
+						"snake",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+          ],
+          "default": [
+						"lowerCamel",
+						"upperCamel",
+						"const"
+					]
+        },
+        "converterList.javascript" :{
+          "description": "when can't match javascript file type using the converter list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "enum": [
+            "lowerCamel",
+						"upperCamel",
+						"snake",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+          ],
+          "default": [
+            "lowerCamel",
+						"upperCamel",
+						"snake",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+					]
+        },
+        "converterList.typescript" :{
+          "description": "when can't match javascript file type using the converter list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "enum": [
+            "lowerCamel",
+						"upperCamel",
+						"snake",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+          ],
+          "default": [
+            "lowerCamel",
+						"upperCamel",
+						"snake",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+					]
+        },
+        "converterList.python" :{
+          "description": "when can't match python file type using the converter list",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "scope": "resource",
+          "enum": [
+            "lowerCamel",
+						"upperCamel",
+						"snake",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+          ],
+          "default": [
+            "snake",
+						"lowerCamel",
+						"upperCamel",
+						"const",
+						"kebab",
+						"pythonMagicMethods",
+						"pythonNameMangling"
+					]
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",

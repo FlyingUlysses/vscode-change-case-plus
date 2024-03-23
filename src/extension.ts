@@ -1,35 +1,57 @@
 import * as vscode from "vscode";
 import { StringConvertFactory } from "./StringConvertFactory";
 
-vscode.commands.registerCommand("extension.changeCasePlus", async () => {
-  let editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    return; 
-  }
-  let originalName = editor.document.getText(editor.selection);
-  if (!originalName) {
-    return; 
-  }
+export function activate(context: vscode.ExtensionContext) {
 
-  const factory =new StringConvertFactory(originalName);
-  const allCases = factory.getAllCases();
-  let newNames = allCases;
+  vscode.commands.registerCommand("changeCasePlus", async () => {
+    let editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return;
+    }
+    let originalName = editor.document.getText(editor.selection);
+    if (!originalName) {
+      return;
+    }
 
-  let selectedName = await vscode.window.showQuickPick(newNames, {
-    placeHolder: "Select a new name",
+    const fileType = editor.document.languageId;
+    const converterNameList = getConverterNameListByFileType(fileType);
+
+    const factory = new StringConvertFactory();
+    const allCases = factory.getAllCases(originalName, converterNameList);
+
+    let newNames = allCases;
+    let selectedName = await vscode.window.showQuickPick(newNames, {
+      placeHolder: "Select a new name",
+    });
+
+    if (!selectedName || selectedName === originalName) {
+      return;
+    }
+
+    executeRenameUseCommand(
+      editor.document,
+      editor.selection.active,
+      selectedName
+    );
+
   });
+}
 
-  if (!selectedName || selectedName === originalName) {
-    return; 
+function getConverterNameListByFileType(fileType: string) : string[] {
+  if (!fileType) {
+    return [];
   }
-
-  executeRenameUseCommand(editor.document, editor.selection.active, selectedName);
-
-});
+  const configuration = vscode.workspace.getConfiguration("converterList");
+  let list =configuration.get(fileType, []) as string[];
+  if (list.length === 0) {
+    list =  configuration.get("defaultList", []) as string[];
+  }
+  return list;
+}
 
 /**
  * Invoke the rename command and apply all changes associated with the edit.
- * 
+ *
  * @param document The edited document
  * @param position selected position
  * @param selectedName changed string, maybe with method name or variable name or class name or just a string
@@ -79,11 +101,11 @@ async function getAllRefs() {
   )) as vscode.Location[];
   console.log("declarations:", declarations);
 
-  let typeDefs = (await vscode.commands.executeCommand(
+  let typeDefs = await vscode.commands.executeCommand(
     "vscode.executeTypeDefinitionProvider",
     document?.uri,
     position
-  ));
+  );
   console.log("typeDefs:", typeDefs);
 
   const methodDefs = (await vscode.commands.executeCommand(
@@ -92,8 +114,8 @@ async function getAllRefs() {
     position
   )) as vscode.Location[];
   console.log("methodDefs:", methodDefs);
-  
-  return refs.concat(imps,declarations);
+
+  return refs.concat(imps, declarations);
 }
 
 async function changeAllByPosition(

@@ -1,54 +1,51 @@
 export class StringConvertFactory {
-  private input: string;
+  private converterMap: Map<string, StringConverter> = new Map();
 
-  private converterMap : Map<string, StringConverter> = new Map();
-
-  constructor(input: string) {
-    this.input = input;
-  }
+  constructor() {}
 
   /**
    * Create a string converter based on the given type.
-   * 
+   *
    * @param type - The type of case to convert to.
-   * @returns 
+   * @returns
    */
-  createConverter(type: string): StringConverter {
+  createConverter(type: string): StringConverter | undefined {
     switch (type) {
-      case "lowerCamelCase":
+      case "lowerCamel":
         return new LowerCamelCaseConverter();
-      case "upperCamelCase":    
+      case "upperCamel":
         return new UpperCamelCaseConverter();
-      case "snakeCase":
+      case "snake":
         return new SnakeCaseConverter();
-      case "constantCase":
+      case "const":
         return new ConstantCaseConverter();
-      case "kebabCase":
+      case "kebab":
         return new KebabCaseConverter();
       case "pythonMagicMethods":
         return new PythonMagicMethodsConverter();
       case "pythonNameMangling":
         return new PythonNameManglingConverter();
       default:
-        return new LowerCamelCaseConverter;
+        return undefined;
     }
   }
-  
+
   /**
    * get a string converter from the cache or create a new one if it doesn't exist.
-   * 
+   *
    * @param type - The type of case to get.
-   * @returns 
+   * @returns
    */
-  getConverter(type: string): StringConverter {
+  getConverter(type: string): StringConverter | undefined {
     let converter = this.converterMap.get(type);
     if (!converter) {
       converter = this.createConverter(type);
-      this.converterMap.set(type, converter);
+      if (converter) {
+        this.converterMap.set(type, converter);
+      }
     }
     return converter;
   }
-  
 
   /**
    * special convert before standard convert
@@ -57,8 +54,8 @@ export class StringConvertFactory {
    * - remove python special characters
    * - common abbreviations // TODO: implement this
    */
-  private specialConvert() {
-    new RemovePythonSpecialCharsConverter().convert(this.input);
+  private specialConvert(input: string) {
+    new RemovePythonSpecialCharsConverter().convert(input);
   }
 
   /**
@@ -66,19 +63,16 @@ export class StringConvertFactory {
    *
    * @returns An array of strings representing different cases of the input string.
    */
-  public getAllCases(): string[] {
-    this.specialConvert();
-    const converters: StringConverter[] = [
-      new LowerCamelCaseConverter(),
-      new UpperCamelCaseConverter(),
-      new SnakeCaseConverter(),
-      new ConstantCaseConverter(),
-      new KebabCaseConverter(),
-      new PythonMagicMethodsConverter(),
-      new PythonNameManglingConverter(),
-    ];
-
-    return converters.map((converter) => converter.convert(this.input));
+  public getAllCases(input: string, converterList: string[]): string[] {
+    this.specialConvert(input);
+    const converters: StringConverter[] = [];
+    converterList.forEach((converterTypeName) => {
+      const converter = this.getConverter(converterTypeName);
+      if (converter) {
+        converters.push(converter);
+      }
+    });
+    return converters.map((converter) => converter.convert(input));
   }
 }
 
