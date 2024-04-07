@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { StringConvertFactory } from "./StringConvertFactory";
+import { LSPAnalysisTypeForSelected } from "./LSPAnalysisTypeForSelected";
 
 export function activate(context: vscode.ExtensionContext) {
-
   vscode.commands.registerCommand("changeCasePlus", async () => {
     let editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -19,32 +19,44 @@ export function activate(context: vscode.ExtensionContext) {
     const factory = new StringConvertFactory();
     const allCases = factory.getAllCases(originalName, converterNameList);
 
-    let newNames = allCases;
-    let selectedName = await vscode.window.showQuickPick(newNames, {
+    const allOptionList: { label: string; picked: boolean }[] = [];
+
+    allCases.forEach((name, index) => {
+      if (index === 0) {
+        allOptionList.push({ label: name, picked: false });
+      } else {
+        allOptionList.push({ label: name, picked: false });
+      }
+    });
+
+    let selectedOption = await vscode.window.showQuickPick(allOptionList, {
       placeHolder: "Select a new name",
     });
 
-    if (!selectedName || selectedName === originalName) {
+    if (!selectedOption || selectedOption.label === originalName) {
       return;
     }
 
-    executeRenameUseCommand(
-      editor.document,
-      editor.selection.active,
-      selectedName
-    );
+    // executeRenameUseCommand(
+    //   editor.document,
+    //   editor.selection.active,
+    //   selectedOption.label
+    // );
 
+    let lsp =new LSPAnalysisTypeForSelected(editor);
+    lsp.start();
+    
   });
 }
 
-function getConverterNameListByFileType(fileType: string) : string[] {
+function getConverterNameListByFileType(fileType: string): string[] {
   if (!fileType) {
     return [];
   }
   const configuration = vscode.workspace.getConfiguration("converterList");
-  let list =configuration.get(fileType, []) as string[];
+  let list = configuration.get(fileType, []) as string[];
   if (list.length === 0) {
-    list =  configuration.get("defaultList", []) as string[];
+    list = configuration.get("defaultList", []) as string[];
   }
   return list;
 }
@@ -74,64 +86,4 @@ async function executeRenameUseCommand(
   } else {
     console.log("Rename operation could not be applied");
   }
-}
-
-async function getAllRefs() {
-  let document = vscode.window?.activeTextEditor?.document;
-  let position = vscode.window?.activeTextEditor?.selection.active;
-
-  const refs = (await vscode.commands.executeCommand(
-    "vscode.executeReferenceProvider",
-    document?.uri,
-    position
-  )) as vscode.Location[];
-  console.log("refs:", refs);
-
-  const imps = (await vscode.commands.executeCommand(
-    "vscode.executeImplementationProvider",
-    document?.uri,
-    position
-  )) as vscode.Location[];
-  console.log("imps:", imps);
-
-  const declarations = (await vscode.commands.executeCommand(
-    "vscode.executeDeclarationProvider",
-    document?.uri,
-    position
-  )) as vscode.Location[];
-  console.log("declarations:", declarations);
-
-  let typeDefs = await vscode.commands.executeCommand(
-    "vscode.executeTypeDefinitionProvider",
-    document?.uri,
-    position
-  );
-  console.log("typeDefs:", typeDefs);
-
-  const methodDefs = (await vscode.commands.executeCommand(
-    "vscode.executeDefinitionProvider",
-    document?.uri,
-    position
-  )) as vscode.Location[];
-  console.log("methodDefs:", methodDefs);
-
-  return refs.concat(imps, declarations);
-}
-
-async function changeAllByPosition(
-  refs: vscode.Location[],
-  selectedName: string | undefined
-) {
-  let edit = new vscode.WorkspaceEdit();
-  refs.forEach((ref) => {
-    // 确认范围有效后，添加替换操作
-    if (ref.range) {
-      edit.replace(ref.uri, ref.range, selectedName ?? "");
-    } else {
-      console.error("无效的替换范围，文件:", ref.uri.path);
-      // 如果某个替换范围无效，你可以选择抛出错误或跳过
-    }
-  });
-
-  await vscode.workspace.applyEdit(edit);
 }
